@@ -8,7 +8,9 @@ ellipse_bvn <- function(bvn, alpha, color = "red"){
   ellipse(Xbar, S, alpha = alpha, col=color, lwd=2)
 }
 
-N <- 1000 # Number of random samples
+#### Gráfico #####
+
+N <- 10000 # Number of random samples
 
 # S1 Distribution
 # Target parameters for univariate normal distributions
@@ -31,7 +33,7 @@ ellipse_bvn(S1,.05)
 # S2 Distribution
 # Target parameters for univariate normal distributions
 mu.eS1 <- 0; sigma.eS1 <- 1
-mu.eS2 <- 3.05; sigma.eS2 <- 1
+mu.eS2 <- 1.55; sigma.eS2 <- 1
 
 # Parameters for bivariate normal distribution
 mu.S2 <- c(mu.eS2,mu.eS1) # Mean
@@ -46,6 +48,28 @@ S2_dataframe <- as.data.frame(S2)
 points(S2_dataframe$eS2, S2_dataframe$eS1, col="darkblue")
 ellipse_bvn(S2,.5, "blue")
 ellipse_bvn(S2,.05, "blue")
-x <- c(-6, 7)
-y <- c(-6, 7)
+x <- c(-5, 7)
+y <- c(-5, 7)
 lines(x, y, lty="dashed", lwd=2)
+## RCE rule
+# Confianza 1: eS1 < -0.5, eS2 < -0.5
+segments(-5, -0.5, -0.5, -0.5, lty="dashed", lwd=2)
+segments(-0.5, -5, -0.5, -0.5, lty="dashed", lwd=2)
+# Confianza 2: eS1 < 1, eS2 < 1
+segments(-5, 1, 1, 1, lty="dashed", lwd=2)
+segments(1, -5, 1, 1, lty="dashed", lwd=2)
+# Confianza 3: eS1 < 2.5, eS2 < 2.5
+segments(-5, 2.5, 2.5, 2.5, lty="dashed", lwd=2)
+segments(2.5, -5, 2.5, 2.5, lty="dashed", lwd=2)
+# Confianza 4: eS1 <= 4, eS2 <= 4
+segments(-5, 4, 4, 4, lty="dashed", lwd=2)
+segments(4, -5, 4, 4, lty="dashed", lwd=2)
+# Confianza 5: eS1 > 4, eS2 > 4
+
+## BE rule
+# |eS2 - eS1| <= 0.5, 0.5 < |eS2 - eS1| <= 2, 2 < |eS2 - eS1| <= 3.5, 3.5 < |eS2 - eS1| <= 5, |eS2 - eS1| > 5
+
+# Recordar que tiene que haber al menos algún punto en cada nivel de confianza
+# Sumar 0.5 es una posibilidad
+
+#### Simulaciones ####
