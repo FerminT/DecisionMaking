@@ -33,7 +33,7 @@ ellipse_bvn(S1,.05)
 # S2 Distribution
 # Target parameters for univariate normal distributions
 mu.eS1 <- 0; sigma.eS1 <- 1
-mu.eS2 <- 1.55; sigma.eS2 <- 1
+mu.eS2 <- 3.05; sigma.eS2 <- 1
 
 # Parameters for bivariate normal distribution
 mu.S2 <- c(mu.eS2,mu.eS1) # Mean
@@ -73,3 +73,103 @@ segments(4, -5, 4, 4, lty="dashed", lwd=2)
 # Sumar 0.5 es una posibilidad
 
 #### Simulaciones ####
+categorizar_confianza_RCE <- function (evidencia_estimulo){
+  if (evidencia_estimulo < -0.5){
+    return(1)
+  } else if (evidencia_estimulo < 1){
+    return(2)
+  } else if (evidencia_estimulo < 2.5){
+    return(3)
+  } else if (evidencia_estimulo < 4){
+    return(4)
+  } else{
+    return(5)
+  }
+}
+
+# |eS2 - eS1| < 0.5, 0.5 <= |eS2 - eS1| < 2, 2 <= |eS2 - eS1| < 3.5, 3.5 <= |eS2 - eS1| < 5, |eS2 - eS1| > 5
+categorizar_confianza_BE <- function(eS1, eS2){
+  distancia <- abs(eS2 - eS1)
+  if (distancia < 0.5){
+    return(1)
+  } else if (distancia < 2){
+    return(2)
+  } else if (distancia < 3.5){
+    return(3)
+  } else if (distancia < 5){
+    return(4)
+  } else{
+    return(5)
+  }
+}
+
+N <- 10000 # Number of random samples
+n_trials <- 2 * N
+# Si el estímulo es S1, entonces estimulo=0. Caso contrario, estímulo=1.
+# Si la respuesta es S1, entonces respuesta=0. Caso contrario, respuesta=1.
+# La confianza se mide según los niveles explicados anteriormente.
+datos_trials_RCE <- data.frame(estimulo=rep(NA, n_trials), respuesta=rep(NA, n_trials), confianza=rep(NA, n_trials))
+datos_trials_BE  <- data.frame(estimulo=rep(NA, n_trials), respuesta=rep(NA, n_trials), confianza=rep(NA, n_trials))
+
+# S1 Distribution
+# Target parameters for univariate normal distributions
+mu_S1.eS1 <- 0.95
+mu_S1.eS2 <- 0
+
+# Parameters for bivariate normal distribution
+mu.S1 <- c(mu_S1.eS2, mu_S1.eS1) # Mean
+sigma.S1 <- diag(2) # Covariance matrix
+
+# S2 Distribution
+# Target parameters for univariate normal distributions
+mu_S2.eS1 <- 0
+mu_S2.eS2 <- 0.05
+
+# Parameters for bivariate normal distribution
+mu.S2 <- c(mu_S2.eS2, mu_S2.eS1) # Mean
+sigma.S2 <- diag(2) # Covariance matrix
+
+S1 <- mvrnorm(N, mu = mu.S1, Sigma = sigma.S1) # from MASS package
+colnames(S1) <- c("eS2", "eS1")
+S1 <- as.data.frame(S1)
+S2 <- mvrnorm(N, mu = mu.S2, Sigma = sigma.S2) # from MASS package
+colnames(S2) <- c("eS2", "eS1")
+S2 <- as.data.frame(S2)
+# Ordeno los estímulos tal que los S1 vienen primero y los S2 después.
+for (i in 1:n_trials){
+  if (i <= N){
+    # El estímulo fue S1
+    datos_trials_BE$estimulo[i]  <- 0
+    datos_trials_RCE$estimulo[i] <- 0
+    # Para la regla RCE, la confianza depende de la respuesta
+    if (S1$eS1[i] > S1$eS2[i]){
+      # Respuesta = S1
+      datos_trials_BE$respuesta[i]  <- 0
+      datos_trials_RCE$respuesta[i] <- 0
+      datos_trials_RCE$confianza[i] <- categorizar_confianza_RCE(S1$eS1[i])
+    } else{
+      # Respuesta = S2
+      datos_trials_BE$respuesta[i]  <- 1
+      datos_trials_RCE$respuesta[i] <- 1
+      datos_trials_RCE$confianza[i] <- categorizar_confianza_RCE(S1$eS2[i])
+    }
+    datos_trials_BE$confianza[i] <- categorizar_confianza_BE(S1$eS1[i], S1$eS2[i])
+  } else{
+    j <- i - N
+    # El estímulo fue S2
+    datos_trials_BE$estimulo[i]  <- 1
+    datos_trials_RCE$estimulo[i] <- 1
+    if (S2$eS1[j] > S2$eS2[j]){
+      # Respuesta = S1
+      datos_trials_BE$respuesta[i]  <- 0
+      datos_trials_RCE$respuesta[i] <- 0
+      datos_trials_RCE$confianza[i] <- categorizar_confianza_RCE(S2$eS1[j])
+    } else{
+      # Respuesta = S2
+      datos_trials_BE$respuesta[i]  <- 1
+      datos_trials_RCE$respuesta[i] <- 1
+      datos_trials_RCE$confianza[i] <- categorizar_confianza_RCE(S2$eS2[j])
+    }
+    datos_trials_BE$confianza[i] <- categorizar_confianza_BE(S2$eS1[j], S2$eS2[j])
+  }
+}
