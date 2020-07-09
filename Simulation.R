@@ -73,6 +73,7 @@ segments(4, -5, 4, 4, lty="dashed", lwd=2)
 # Sumar 0.5 es una posibilidad
 
 #### Simulaciones ####
+library(MASS)
 categorizar_confianza_RCE <- function (evidencia_estimulo){
   if (evidencia_estimulo < -0.5){
     return(1)
@@ -108,8 +109,7 @@ n_trials <- 2 * N
 # Si el estímulo es S1, entonces estimulo=0. Caso contrario, estímulo=1.
 # Si la respuesta es S1, entonces respuesta=0. Caso contrario, respuesta=1.
 # La confianza se mide según los niveles explicados anteriormente.
-datos_trials_RCE <- data.frame(estimulo=rep(NA, n_trials), respuesta=rep(NA, n_trials), confianza=rep(NA, n_trials))
-datos_trials_BE  <- data.frame(estimulo=rep(NA, n_trials), respuesta=rep(NA, n_trials), confianza=rep(NA, n_trials))
+datos_trials <- data.frame(estimulo=rep(NA, n_trials), respuesta=rep(NA, n_trials), confianza_BE=rep(NA, n_trials), confianza_RCE=rep(NA, n_trials))
 
 # S1 Distribution
 # Target parameters for univariate normal distributions
@@ -139,37 +139,34 @@ S2 <- as.data.frame(S2)
 for (i in 1:n_trials){
   if (i <= N){
     # El estímulo fue S1
-    datos_trials_BE$estimulo[i]  <- 0
-    datos_trials_RCE$estimulo[i] <- 0
+    datos_trials$estimulo[i] <- 0
     # Para la regla RCE, la confianza depende de la respuesta
     if (S1$eS1[i] > S1$eS2[i]){
       # Respuesta = S1
-      datos_trials_BE$respuesta[i]  <- 0
-      datos_trials_RCE$respuesta[i] <- 0
-      datos_trials_RCE$confianza[i] <- categorizar_confianza_RCE(S1$eS1[i])
+      datos_trials$respuesta[i]  <- 0
+      datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S1$eS1[i])
     } else{
       # Respuesta = S2
-      datos_trials_BE$respuesta[i]  <- 1
-      datos_trials_RCE$respuesta[i] <- 1
-      datos_trials_RCE$confianza[i] <- categorizar_confianza_RCE(S1$eS2[i])
+      datos_trials$respuesta[i]  <- 1
+      datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S1$eS2[i])
     }
-    datos_trials_BE$confianza[i] <- categorizar_confianza_BE(S1$eS1[i], S1$eS2[i])
+    datos_trials$confianza_BE[i] <- categorizar_confianza_BE(S1$eS1[i], S1$eS2[i])
   } else{
     j <- i - N
     # El estímulo fue S2
-    datos_trials_BE$estimulo[i]  <- 1
-    datos_trials_RCE$estimulo[i] <- 1
+    datos_trials$estimulo[i] <- 1
     if (S2$eS1[j] > S2$eS2[j]){
       # Respuesta = S1
-      datos_trials_BE$respuesta[i]  <- 0
-      datos_trials_RCE$respuesta[i] <- 0
-      datos_trials_RCE$confianza[i] <- categorizar_confianza_RCE(S2$eS1[j])
+      datos_trials$respuesta[i] <- 0
+      datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S2$eS1[j])
     } else{
       # Respuesta = S2
-      datos_trials_BE$respuesta[i]  <- 1
-      datos_trials_RCE$respuesta[i] <- 1
-      datos_trials_RCE$confianza[i] <- categorizar_confianza_RCE(S2$eS2[j])
+      datos_trials$respuesta[i]  <- 1
+      datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S2$eS2[j])
     }
-    datos_trials_BE$confianza[i] <- categorizar_confianza_BE(S2$eS1[j], S2$eS2[j])
+    datos_trials$confianza_BE[i] <- categorizar_confianza_BE(S2$eS1[j], S2$eS2[j])
   }
 }
+
+path <- "E:/Documents/Exactas/Toma de Decisiones/TDD/Simulaciones/Resultados/simulacion1.csv"
+write.csv(datos_trials, path)
