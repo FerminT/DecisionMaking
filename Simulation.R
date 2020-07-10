@@ -170,3 +170,5 @@ for (i in 1:n_trials){
 
 path <- "E:/Documents/Exactas/Toma de Decisiones/TDD/Simulaciones/Resultados/simulacion1.csv"
 write.csv(datos_trials, path)
+
+datos[:]
