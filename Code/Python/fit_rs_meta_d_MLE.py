@@ -162,7 +162,7 @@ from scipy.optimize import Bounds, LinearConstraint, minimize, SR1
 def fitM_rS1_logL(parameters,inputObj):
     meta_d1_rS1 = parameters[0]
     t2c1        = parameters[1:]
-    nR_S1, nR_S2, nRatings, t1c1, s, d1, constant_criterion_rS1, constant_criterion_rS2, fncdf, fninv = inputObj
+    nR_S1, nR_S2, nRatings, d1, t1c1, s, constant_criterion_rS1, constant_criterion_rS2, fncdf, fninv = inputObj
 
     # define mean and SD of S1 and S2 distributions
     S1mu = -meta_d1_rS1/2
@@ -260,8 +260,8 @@ def fitM_rS2_logL(parameters,inputObj):
     t2c1x.extend(t2c1)
     t2c1x.append(np.inf)
 
-    prC_rS2 = [( (1-fncdf(t2c1x[nRatings+i],S2mu,S2sd)) - (1-fncdf(t2c1x[nRatings+i+1],S2mu,S2sd)) ) / C_area_rS2 for i in range(nRatings)]
-    prI_rS2 = [( (1-fncdf(t2c1x[nRatings+i],S1mu,S1sd)) - (1-fncdf(t2c1x[nRatings+i+1],S1mu,S1sd)) ) / I_area_rS2 for i in range(nRatings)]
+    prC_rS2 = [( (1-fncdf(t2c1x[i],S2mu,S2sd)) - (1-fncdf(t2c1x[i+1],S2mu,S2sd)) ) / C_area_rS2 for i in range(nRatings)]
+    prI_rS2 = [( (1-fncdf(t2c1x[i],S1mu,S1sd)) - (1-fncdf(t2c1x[i+1],S1mu,S1sd)) ) / I_area_rS2 for i in range(nRatings)]
 
     # calculate logL
     logL = np.sum([nC_rS2[i]*np.log(prC_rS2[i]) \
@@ -343,10 +343,10 @@ def fit_rs_meta_d_MLE(nR_S1, nR_S2, s = 1, fncdf = norm.cdf, fninv = norm.ppf):
     # find actual type 2 FAR and HR (data to be fit)
     # I_nR and C_nR are rating trail counts for incorrect and correct trials
     I_nR_rS2 = nR_S1[nRatings:]
-    I_nR_rS1 = nR_S2[:nRatings]
+    I_nR_rS1 = (nR_S2[:nRatings])[::-1]
 
     C_nR_rS2 = nR_S2[nRatings:]
-    C_nR_rS1 = nR_S1[:nRatings]
+    C_nR_rS1 = (nR_S1[:nRatings])[::-1]
 
     t2FAR_rS2 = []
     t2HR_rS2  = []
@@ -376,12 +376,12 @@ def fit_rs_meta_d_MLE(nR_S1, nR_S2, s = 1, fncdf = norm.cdf, fninv = norm.ppf):
 
     nCritPerResp = (nCriteria - 1) // 2
 
-    for crit in range(nCritPerResp - 2):
+    for crit in range(nCritPerResp - 1):
         # c(crit) <= c(crit+1) --> c(crit) - c(crit+1) <= .001
         tempArow = []
         tempArow.extend(np.zeros(crit+1))
         tempArow.extend([1, -1])
-        tempArow.extend(np.zeros((nCritPerResp-2)-crit-1))
+        tempArow.extend(np.zeros((nCritPerResp-1)-crit-1))
         A.append(tempArow)
         ub.append(-.001)
         lb.append(-np.inf)
@@ -432,7 +432,7 @@ def fit_rs_meta_d_MLE(nR_S1, nR_S2, s = 1, fncdf = norm.cdf, fninv = norm.ppf):
     guess_rS1 = [meta_d1_rS1]
     guess_rS1.extend(list(t2c1[:nCritPerResp] - eval(constant_criterion_rS1)))
     guess_rS2 = [meta_d1_rS2]
-    guess_rS2.extend(list(t2c1[nCritPerResp + 1:] - eval(constant_criterion_rS2)))
+    guess_rS2.extend(list(t2c1[nCritPerResp:] - eval(constant_criterion_rS2)))
     
     # other inputs for the minimization function
     inputObj_rS1 = [nR_S1, nR_S2, nRatings, d1, t1c1, s, constant_criterion_rS1, constant_criterion_rS2, fncdf, fninv]        
