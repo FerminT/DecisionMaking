@@ -106,13 +106,9 @@ categorizar_confianza_BE <- function(eS1, eS2){
 
 N <- 10000 # Number of random samples
 n_trials <- 2 * N
-# Si el estímulo es S1, entonces estimulo=0. Caso contrario, estímulo=1.
-# Si la respuesta es S1, entonces respuesta=0. Caso contrario, respuesta=1.
-# La confianza se mide según los niveles explicados anteriormente.
-datos_trials <- data.frame(estimulo=rep(NA, n_trials), respuesta=rep(NA, n_trials), confianza_BE=rep(NA, n_trials), confianza_RCE=rep(NA, n_trials))
 
+# La distribución S1 no varía
 # S1 Distribution
-# Target parameters for univariate normal distributions
 mu_S1.eS1 <- 0.95
 mu_S1.eS2 <- 0
 
@@ -120,55 +116,79 @@ mu_S1.eS2 <- 0
 mu.S1 <- c(mu_S1.eS2, mu_S1.eS1) # Mean
 sigma.S1 <- diag(2) # Covariance matrix
 
-# S2 Distribution
-# Target parameters for univariate normal distributions
-mu_S2.eS1 <- 0
-mu_S2.eS2 <- 0.05
+# Posibles valores que toma la media de S2
+valores_mu_S2 <- seq(0.05, 3.05, by=0.3)
 
-# Parameters for bivariate normal distribution
-mu.S2 <- c(mu_S2.eS2, mu_S2.eS1) # Mean
-sigma.S2 <- diag(2) # Covariance matrix
+# En este directorio se van a guardar los resultados en formato CSV
+path_simulacion <- "E:/Documents/Exactas/Toma de Decisiones/TDD/Simulaciones/Resultados"
+count <- 0
 
-S1 <- mvrnorm(N, mu = mu.S1, Sigma = sigma.S1) # from MASS package
-colnames(S1) <- c("eS2", "eS1")
-S1 <- as.data.frame(S1)
-S2 <- mvrnorm(N, mu = mu.S2, Sigma = sigma.S2) # from MASS package
-colnames(S2) <- c("eS2", "eS1")
-S2 <- as.data.frame(S2)
-# Ordeno los estímulos tal que los S1 vienen primero y los S2 después.
-for (i in 1:n_trials){
-  if (i <= N){
-    # El estímulo fue S1
-    datos_trials$estimulo[i] <- 0
-    # Para la regla RCE, la confianza depende de la respuesta
-    if (S1$eS1[i] > S1$eS2[i]){
-      # Respuesta = S1
-      datos_trials$respuesta[i]  <- 0
-      datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S1$eS1[i])
+# Realizo cada una de las simulaciones
+for (mu_S2 in valores_mu_S2){
+  count <- count + 1
+  # S2 Distribution
+  mu_S2.eS1 <- 0
+  mu_S2.eS2 <- mu_S2
+  
+  # Parameters for bivariate normal distribution
+  mu.S2 <- c(mu_S2.eS2, mu_S2.eS1) # Mean
+  sigma.S2 <- diag(2) # Covariance matrix
+  
+  # Realizo la simulación, tomo N valores de S1 y N valores de S2
+  S1 <- mvrnorm(N, mu = mu.S1, Sigma = sigma.S1) # from MASS package
+  colnames(S1) <- c("eS2", "eS1")
+  S1 <- as.data.frame(S1)
+  
+  S2 <- mvrnorm(N, mu = mu.S2, Sigma = sigma.S2) # from MASS package
+  colnames(S2) <- c("eS2", "eS1")
+  S2 <- as.data.frame(S2)
+  
+  # Si el estímulo es S1, entonces estimulo=0. Caso contrario, estímulo=1.
+  # Si la respuesta es S1, entonces respuesta=0. Caso contrario, respuesta=1.
+  # La confianza se mide según los niveles explicados anteriormente.
+  # Ordeno los estímulos tal que los S1 vienen primero y los S2 después.
+  datos_trials <- data.frame(estimulo=rep(NA, n_trials), respuesta=rep(NA, n_trials), confianza_BE=rep(NA, n_trials), confianza_RCE=rep(NA, n_trials))
+  for (i in 1:n_trials){
+    if (i <= N){
+      # El estímulo fue S1
+      datos_trials$estimulo[i] <- 0
+      # Para la regla RCE, la confianza depende de la respuesta
+      if (S1$eS1[i] > S1$eS2[i]){
+        # Respuesta = S1
+        datos_trials$respuesta[i]  <- 0
+        datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S1$eS1[i])
+      } else{
+        # Respuesta = S2
+        datos_trials$respuesta[i]  <- 1
+        datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S1$eS2[i])
+      }
+      datos_trials$confianza_BE[i] <- categorizar_confianza_BE(S1$eS1[i], S1$eS2[i])
     } else{
-      # Respuesta = S2
-      datos_trials$respuesta[i]  <- 1
-      datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S1$eS2[i])
+      j <- i - N
+      # El estímulo fue S2
+      datos_trials$estimulo[i] <- 1
+      if (S2$eS1[j] > S2$eS2[j]){
+        # Respuesta = S1
+        datos_trials$respuesta[i] <- 0
+        datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S2$eS1[j])
+      } else{
+        # Respuesta = S2
+        datos_trials$respuesta[i]  <- 1
+        datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S2$eS2[j])
+      }
+      datos_trials$confianza_BE[i] <- categorizar_confianza_BE(S2$eS1[j], S2$eS2[j])
     }
-    datos_trials$confianza_BE[i] <- categorizar_confianza_BE(S1$eS1[i], S1$eS2[i])
-  } else{
-    j <- i - N
-    # El estímulo fue S2
-    datos_trials$estimulo[i] <- 1
-    if (S2$eS1[j] > S2$eS2[j]){
-      # Respuesta = S1
-      datos_trials$respuesta[i] <- 0
-      datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S2$eS1[j])
-    } else{
-      # Respuesta = S2
-      datos_trials$respuesta[i]  <- 1
-      datos_trials$confianza_RCE[i] <- categorizar_confianza_RCE(S2$eS2[j])
-    }
-    datos_trials$confianza_BE[i] <- categorizar_confianza_BE(S2$eS1[j], S2$eS2[j])
   }
+
+  archivo <- paste(path_simulacion, "/simulacion", toString(count), ".csv", sep="")  
+  write.csv(datos_trials, archivo)  
 }
 
-path <- "E:/Documents/Exactas/Toma de Decisiones/TDD/Simulaciones/Resultados/simulacion1.csv"
-write.csv(datos_trials, path)
+### Correr script SimulationResults.py para procesarlos y generar las distintas métricas
 
-datos[:]
+
+# Directorio donde se almacenaron los resultados del script anterior
+path_metricas <- "E:/Documents/Exactas/Toma de Decisiones/TDD/Simulaciones/Métricas"
+archivos_metricas <- paste0(paste(path_metricas, "/metricas", sep=""), 1:count, ".csv")
+
+metricas <- lapply(archivos_metricas, read.csv)
