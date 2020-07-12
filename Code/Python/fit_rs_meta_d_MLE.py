@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jul 12 14:13:24 2019
 
-[translated from fit_meta_d_MLE.m by Maniscalco & Lau (2012) by alan lee]
+[translated from fit_rs_meta_d_MLE.m by Maniscalco & Lau (2012) based on alan lee's previous work by fermin travi]
 [requires numpy-1.13.3, scipy-1.1.0, or later versions]
 [comments below are copied and pasted from fit_rs_meta_d_MLE.m]
 
@@ -143,6 +142,7 @@ Created on Fri Jul 12 14:13:24 2019
 % If there are N ratings, then there will be N-1 type 2 hit rates and false
 % alarm rates. 
 
+% 2020/07/11 - changed functions to calculate response-specific meta d'
 % 2019/07/12 - translated to python3 by alan lee
                 [requires numpy-1.13.3, scipy-1.1.0, or later versions]
 % 2015/07/23 - fixed bug for output fit.meta_ca and fit.S1units.meta_c1. 
