@@ -1,3 +1,4 @@
+#### Gráfico #####
 library(mixtools)  #for ellipse
 library(MASS)
 
@@ -7,8 +8,6 @@ ellipse_bvn <- function(bvn, alpha, color = "red"){
   S <- cov(bvn)
   ellipse(Xbar, S, alpha = alpha, col=color, lwd=2)
 }
-
-#### Gráfico #####
 
 N <- 10000 # Number of random samples
 
@@ -68,9 +67,6 @@ segments(4, -5, 4, 4, lty="dashed", lwd=2)
 
 ## BE rule
 # |eS2 - eS1| <= 0.5, 0.5 < |eS2 - eS1| <= 2, 2 < |eS2 - eS1| <= 3.5, 3.5 < |eS2 - eS1| <= 5, |eS2 - eS1| > 5
-
-# Recordar que tiene que haber al menos algún punto en cada nivel de confianza
-# Sumar 0.5 es una posibilidad
 
 #### Simulaciones ####
 library(MASS)
@@ -184,11 +180,87 @@ for (mu_S2 in valores_mu_S2){
   write.csv(datos_trials, archivo)  
 }
 
-### Correr script SimulationResults.py para procesarlos y generar las distintas métricas
+
+#### Correr script SimulationResults.py para procesarlos y generar las distintas métricas
 
 
 # Directorio donde se almacenaron los resultados del script anterior
 path_metricas <- "E:/Documents/Exactas/Toma de Decisiones/TDD/Simulaciones/Métricas"
 archivos_metricas <- paste0(paste(path_metricas, "/metricas", sep=""), 1:count, ".csv")
 
+# Cargo los datos
 metricas <- lapply(archivos_metricas, read.csv)
+
+# Cargo los datos de d' y meta d'
+dp              <- rep(NA, count)
+meta_dp_BE      <- rep(NA, count)
+meta_dp_RCE     <- rep(NA, count)
+meta_dp_RCE_rS1 <- rep(NA, count)
+meta_dp_RCE_rS2 <- rep(NA, count)
+for (i in 1:count){
+  dp[i] <- metricas[[i]]$dp[metricas[[i]]$rule == 'BE'] # Da igual la regla para el d'
+  
+  meta_dp_BE[i]      <- metricas[[i]]$meta_dp[metricas[[i]]$rule == 'BE']
+  meta_dp_RCE[i]     <- metricas[[i]]$meta_dp[metricas[[i]]$rule == 'RCE']
+  meta_dp_RCE_rS1[i] <- metricas[[i]]$meta_dp_rS1[metricas[[i]]$rule == 'RCE']
+  meta_dp_RCE_rS2[i] <- metricas[[i]]$meta_dp_rS2[metricas[[i]]$rule == 'RCE']
+}
+
+# Grafico meta d' / d'
+plot(dp, meta_dp_BE, xlim=c(0.5, 3), ylim=c(-1, 3.5), xlab="d'", ylab="meta-d'", lwd=2, lty="dotted", type="b", pch=4)
+lines(dp, meta_dp_RCE, lwd=2, lty="dashed", type="b", pch=15)
+lines(dp, meta_dp_RCE_rS1, lwd=2, lty="dotted", col="red", type="b", pch=17)
+lines(dp, meta_dp_RCE_rS2, lwd=2, lty="dotted", col="blue", type="b", pch=17)
+legend("topleft", legend=c("BE", "RCE, general", "RCE, resp=\"S1\"", "RCE, resp=\"S2\""), col=c("black", "black", "red", "blue"), 
+      lty=c(3, 3, 3, 3), pch=c(4, 15, 17, 17))
+
+
+# Grafico las ROC tipo 2
+par(mfrow=c(3, 4))
+# Para la diagonal
+x <- seq(0, 1, by=0.1)
+y <- seq(0, 1, by=0.1)
+
+nRatings <- 5
+# Estos valores se van a sobreescribir, solo me interesa que haya un 0 al principio y 1 al final
+HR2_rS1_RCE <- seq(from = 0, to = 1, length.out = nRatings + 1)
+HR2_rS2_RCE <- seq(from = 0, to = 1, length.out = nRatings + 1)
+FAR2_rS1_RCE <- seq(from = 0, to = 1, length.out = nRatings + 1)
+FAR2_rS2_RCE <- seq(from = 0, to = 1, length.out = nRatings + 1)
+HR2_rS1_BE <- seq(from = 0, to = 1, length.out = nRatings + 1)
+HR2_rS2_BE <- seq(from = 0, to = 1, length.out = nRatings + 1)
+FAR2_rS1_BE <- seq(from = 0, to = 1, length.out = nRatings + 1)
+FAR2_rS2_BE <- seq(from = 0, to = 1, length.out = nRatings + 1)
+
+offset <- 4 # Posición de los FAR2
+columnas_tipo_2_rS1 <- c('HR2_rS1_1', 'HR2_rS1_2', 'HR2_rS1_3', 'HR2_rS1_4', 'FAR2_rS1_1', 'FAR2_rS1_2', 'FAR2_rS1_3', 'FAR2_rS1_4')
+columnas_tipo_2_rS2 <- c('HR2_rS2_1', 'HR2_rS2_2', 'HR2_rS2_3', 'HR2_rS2_4', 'FAR2_rS2_1', 'FAR2_rS2_2', 'FAR2_rS2_3', 'FAR2_rS2_4')
+for (i in 1:count){
+  # Cambio los márgenes para que salga más grande
+  par(mar = c(2,2,1,1))
+  current <- metricas[[i]]
+  currentRow_BE_rS1   <- as.numeric(current[current$rule == 'BE', columnas_tipo_2_rS1])
+  currentRow_BE_rS2   <- as.numeric(current[current$rule == 'BE', columnas_tipo_2_rS2])
+  currentRow_RCE_rS1  <- as.numeric(current[current$rule == 'RCE', columnas_tipo_2_rS1])
+  currentRow_RCE_rS2  <- as.numeric(current[current$rule == 'RCE', columnas_tipo_2_rS2])
+  for (j in 1:(nRatings - 1)){
+    k <- nRatings - j
+    HR2_rS1_BE[j + 1]  <- currentRow_BE_rS1[k]
+    HR2_rS2_BE[j + 1]  <- currentRow_BE_rS2[k]
+    HR2_rS1_RCE[j + 1] <- currentRow_RCE_rS1[k]
+    HR2_rS2_RCE[j + 1] <- currentRow_RCE_rS2[k]
+    
+    FAR2_rS1_BE[j + 1]  <- currentRow_BE_rS1[k + offset]
+    FAR2_rS2_BE[j + 1]  <- currentRow_BE_rS2[k + offset]
+    FAR2_rS1_RCE[j + 1] <- currentRow_RCE_rS1[k + offset]
+    FAR2_rS2_RCE[j + 1] <- currentRow_RCE_rS2[k + offset]
+  }
+  plot(FAR2_rS1_BE, HR2_rS1_BE, main=paste("eS2 =", toString(valores_mu_S2[i])), lwd=2, type="b", lty="dotted", pch=24, xlab="type 2 FAR", ylab="type 2 HR", bg="black")
+  lines(FAR2_rS2_BE, HR2_rS2_BE, lwd=2, type="b", lty="dotted", pch=25, bg="black")
+  lines(FAR2_rS1_RCE, HR2_rS1_RCE, lwd=2, type="b", lty="dotted", pch=24, col="red", bg="red")
+  lines(FAR2_rS2_RCE, HR2_rS2_RCE, lwd=2, type="b", lty="dotted", pch=25, col="blue", bg="blue")
+  lines(x, y, lwd=2, lty="dashed")
+}
+plot(1, type = "n", axes=FALSE, xlab="", ylab="")
+legend("center", legend=c("BE, resp=\"S1\"", "BE, resp=\"S2\"", "RCE, resp=\"S1\"", "RCE, resp=\"S2\""), 
+       col=c("black", "black", "red", "blue"), lty=c(3, 3, 3, 3), pch=c(24, 25, 24, 25), cex=1.3)

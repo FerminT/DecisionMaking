@@ -359,10 +359,6 @@ def fit_rs_meta_d_MLE(nR_S1, nR_S2, s = 1, fncdf = norm.cdf, fninv = norm.ppf):
         t2FAR_rS1.append(sum(I_nR_rS1[i:]) / sum(I_nR_rS1))
         t2HR_rS1.append(sum(C_nR_rS1[i:]) / sum(C_nR_rS1))
 
-    t2FAR_rS1.reverse()
-    t2HR_rS1.reverse()
-
-
     """
     set up constraints for scipy.optimize.minimum()
     """

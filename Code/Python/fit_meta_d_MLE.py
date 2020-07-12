@@ -316,7 +316,7 @@ def fit_meta_d_MLE(nR_S1, nR_S2, s = 1, fncdf = norm.cdf, fninv = norm.ppf):
     I_nR_rS2 = nR_S1[nRatings:]
     I_nR_rS1 = list(np.flip(nR_S2[0:nRatings],axis=0))
     
-    C_nR_rS2 = nR_S2[nRatings:];
+    C_nR_rS2 = nR_S2[nRatings:]
     C_nR_rS1 = list(np.flip(nR_S1[0:nRatings],axis=0))
     
     obs_FAR2_rS2 = [sum( I_nR_rS2[(i+1):] ) / sum(I_nR_rS2) for i in range(nRatings-1)]
@@ -328,7 +328,7 @@ def fit_meta_d_MLE(nR_S1, nR_S2, s = 1, fncdf = norm.cdf, fninv = norm.ppf):
     S1mu = -meta_d1/2
     S1sd = 1
     S2mu =  meta_d1/2
-    S2sd = S1sd/s;
+    S2sd = S1sd/s
     
     mt1c1 = eval(constant_criterion)
     
