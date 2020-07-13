@@ -24,7 +24,7 @@ S1 <- mvrnorm(N, mu = mu.S1, Sigma = sigma.S1)
 # S2 Distribution
 # Target parameters for univariate normal distributions
 mu.eS1 <- 0; sigma.eS1 <- 1
-mu.eS2 <- 1.55; sigma.eS2 <- 1
+mu.eS2 <- 2; sigma.eS2 <- 1
 
 # Parameters for bivariate normal distribution
 mu.S2 <- c(mu.eS2,mu.eS1) # Mean
@@ -40,7 +40,7 @@ ellipse_bvn(S1,.5)
 ellipse_bvn(S1,.05)
 ellipse_bvn(S2,.5, "blue")
 ellipse_bvn(S2,.05, "blue")
-legend("topleft", legend = c("Distribución S1", "Distribución S2"), col=c("red", "blue"), lty=c(1, 1))
+legend("topleft", legend = c("f(eS1, eS2 | s=S1)", "f(eS1, eS2 | s=S2)"), col=c("red", "blue"), lty=c(1, 1))
 
 ## RCE rule
 # Confianza 1: eS1 < -0.5, eS2 < -0.5
