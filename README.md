@@ -1,7 +1,11 @@
-# TDD
-TP Toma de Decisiones
+# Decision Making
+Decision Making course group project
 -------------------------
-Para realizar las simulaciones y generar los gráficos:
-  1. Correr el script Simulaciones.R hasta la línea 120 (modificar la variable path_simulacion).
-  2. Correr el script SimulationResults.py (los valores por defecto son 5 niveles de confianza, 20000 trials y 11 simulaciones)
-  3. Correr el resto del script Simulaciones.R para generar los gráficos (modificar la variable path_metricas).
+Run simulations and create plots:
+  1. Run Simulaciones.R up to line 120 (modify path_simulacion accordingly).
+  2. Run SimulationResults.py (default parameters: 5 confidence levels, 20.000 trials and 11 simulations)
+  3. Run the remaining code in Simulaciones.R to create plots (modify path_metricas accordingly).
+
+## Results
+![ROC curves](Figuras/curvas_roc_tipo_2.png?raw=true "ROC curves")
+![Meta dp vs dp](Figuras/meta_dp_vs_dp.png?raw=true "Meta d' vs. d'")
